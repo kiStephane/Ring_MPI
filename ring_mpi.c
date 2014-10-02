@@ -1,6 +1,6 @@
 /*
   Compile with
-    mpicc -O3 -std=c99 model.c -o model
+    mpicc -O3 -std=c99 ring_mpi.c -o ring
  */
 
 
