@@ -58,27 +58,24 @@ int main(int argc, char* argv[]) {
       messageSize = 0;
     }
     
-    startTime = MPI_Wtime();      // Start measuring time  
+    startTime = MPI_Wtime();      // Start measuring time
+
     //printf("Message size is %d\n", messageSize);     
-    //printf("Process %d brodcasting\n", id);
 	  MPI_Bcast(&messageSize,1, MPI_INT, 0,MPI_COMM_WORLD ); // Broadcast the messageSize
 
     /*Initialize message with the specified size */
-    char * message;
-    message = (char*) malloc(messageSize*sizeof(*message));
-    memset(message,7,messageSize);
+    memset(buffer, 7, messageSize);
 
-    MPI_Send(message, messageSize, MPI_CHAR, 1, tag, MPI_COMM_WORLD);    
+    MPI_Sendrecv(buffer, messageSize, MPI_CHAR, 1, tag, buffer, messageSize, MPI_CHAR, 
+      np-1, tag, MPI_COMM_WORLD, &status);
 
-    MPI_Recv(buffer,messageSize, MPI_CHAR,np-1,tag, MPI_COMM_WORLD,&status);
 
     //printf("Process 0 received message from %d\n", np-1);
     endTime = MPI_Wtime();      // Stop measuring time
     printf("Time: %f s\n", endTime-startTime);
-    free(message);
 
   } else{
-    int next=(id+1)%np; //the rank of the next process
+    int next = (id+1)%np; //the rank of the next process
 
     MPI_Bcast(&messageSize, 1, MPI_INT, 0, MPI_COMM_WORLD);    
    

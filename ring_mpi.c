@@ -1,6 +1,6 @@
 /*
   Compile with
-    mpicc -O3 -std=c99 ring_mpi.c -o ring
+    mpicc -O3 -std=c99 ring_mpi.c -o ring2
  */
 
 
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   int np, id, err;
   int messageSize = -1;    
   char* buffer;
-    int tag = 777;
+  int tag = 777;
   MPI_Status status;
   double startTime, endTime;
 
@@ -73,30 +73,24 @@ int main(int argc, char* argv[]) {
       printf("Sorry, that's too much memory!\n\n");
       messageSize = 0;
     }
+
     printf("Message size is %d\n", messageSize);
       
-    printf("Process %d sending to process all\n", id);
 	  MPI_Bcast(&messageSize,1, MPI_INT, 0,MPI_COMM_WORLD );
 
-    char * message;
-    message = (char*) malloc(messageSize*sizeof(char));
-    memset(message,7,messageSize);
+    /*Initialize message with the specified size */
+    memset(buffer, 7, messageSize);
 
-    err=MPI_Send(message, messageSize, MPI_CHAR, 1, tag,
-               MPI_COMM_WORLD);    
-    if(err!=MPI_SUCCESS){
-    printf("Error is MPI_Send in process 0 ");
-    }
+    err = MPI_Sendrecv(buffer, messageSize, MPI_CHAR, 1, tag, buffer, messageSize, MPI_CHAR, 
+      np-1, tag, MPI_COMM_WORLD, &status);
 
-    err = MPI_Recv(buffer,messageSize, MPI_CHAR,np-1,tag, MPI_COMM_WORLD,&status);
     if (err!=MPI_SUCCESS){
-    printf("Erro in MPI_Recv in process %d\n", id);
+    printf("Error in MPI_Sendrecv in process %d\n", id);
     }
 
     printf("Process 0 received message from %d\n", np-1);
     endTime = MPI_Wtime();      // Stop measuring time
     printf("Time: %f s\n", endTime-startTime);
-    free(message);
 
   } else{
     int next=(id+1)%np;
@@ -112,9 +106,11 @@ int main(int argc, char* argv[]) {
     }
     //printf("Process %d received %d from %d\n",id,buffer[0],id-1);
 
-    MPI_Send(buffer, messageSize, MPI_CHAR, next,tag,MPI_COMM_WORLD);
+    err=MPI_Send(buffer, messageSize, MPI_CHAR, next,tag,MPI_COMM_WORLD);
+    if(err!=MPI_SUCCESS){
+    printf("Error in MPI_Recv buffer in process %d\n", id);
     }
-  
+  }
     free(buffer);
     MPI_Finalize();
     exit(0); 
