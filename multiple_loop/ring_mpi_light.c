@@ -33,6 +33,10 @@ int main(int argc, char* argv[]) {
 
   /* Allocate a sufficiently large message buffer */
   buffer = (char*) malloc(MAXSIZE*sizeof(char));
+  if (buffer == NULL){
+    MPI_Finalize();
+    exit(1);
+  }
   memset(buffer, 1, MAXSIZE);   // Initialize the buffer to all ones
 
     /* Check that we run on at least two processors */
@@ -60,7 +64,7 @@ int main(int argc, char* argv[]) {
         messageSize = 0;
       }
       
-      startTime = MPI_Wtime();      // Start measuring time
+      
 
       //printf("Message size is %d\n", messageSize);     
   	  MPI_Bcast(&messageSize, 1, MPI_INT, 0,MPI_COMM_WORLD ); // Broadcast the messageSize
@@ -68,6 +72,7 @@ int main(int argc, char* argv[]) {
       /*Initialize message with the specified size */
       memset(buffer, 7, messageSize);
 
+      startTime = MPI_Wtime();      // Start measuring time  
       if (messageSize!=0){
         MPI_Sendrecv(buffer, messageSize, MPI_CHAR, 1, tag, buffer, messageSize, MPI_CHAR, 
         np-1, tag, MPI_COMM_WORLD, &status);
